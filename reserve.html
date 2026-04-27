@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rocketry Lab — Reserve Equipment</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Bebas+Neue&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0d12;
+  --surface: #12151d;
+  --surface2: #181c27;
+  --surface3: #1e2333;
+  --border: #252a3a;
+  --border2: #2f3650;
+  --text: #dde2f0;
+  --text2: #7a8099;
+  --text3: #444c66;
+  --accent: #e8622a;
+  --accent2: #ff7d42;
+  --p1: #4a9eff;
+  --p2: #a855f7;
+  --p3: #34d399;
+  --p1bg: rgba(74,158,255,0.10);
+  --p2bg: rgba(168,85,247,0.10);
+  --p3bg: rgba(52,211,153,0.10);
+  --p1border: rgba(74,158,255,0.30);
+  --p2border: rgba(168,85,247,0.30);
+  --p3border: rgba(52,211,153,0.30);
+  --workbench: #1a2a1a;
+  --workbench-border: #2a4a2a;
+  --elec: #1a1a2a;
+  --elec-border: #2a2a4a;
+  --floor: #0f111a;
+  --font: 'Sora', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --display: 'Bebas Neue', cursive;
+  --r: 10px; --r-sm: 6px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 15px; line-height: 1.6; }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* NAV */
+nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem; height: 60px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(11,13,18,0.95);
+  backdrop-filter: blur(12px);
+  position: sticky; top: 0; z-index: 200;
+}
+.nav-logo-wrap { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo-box {
+  width: 32px; height: 32px; border-radius: 7px; background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--display); font-size: 18px; color: #fff;
+}
+.nav-logo-text { font-size: 13px; font-weight: 600; color: var(--text); }
+.nav-links { display: flex; gap: 4px; align-items: center; }
+.nav-link {
+  padding: 6px 14px; border-radius: 6px; font-size: 13px;
+  color: var(--text2); text-decoration: none; transition: all .15s;
+  border: 1px solid transparent;
+}
+.nav-link:hover { color: var(--text); background: var(--surface2); }
+.nav-link.active { color: var(--text); background: var(--surface2); border-color: var(--border2); }
+.nav-user { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text2); font-family: var(--mono); }
+.nav-user-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--p3); }
+
+/* TABS */
+.nav-tabs { display: flex; gap: 2px; }
+.nav-tab {
+  padding: 6px 14px; border-radius: var(--r-sm);
+  font-size: 13px; color: var(--text2); cursor: pointer;
+  border: none; background: none; font-family: var(--font);
+  transition: color .15s, background .15s;
+}
+.nav-tab:hover { color: var(--text); background: var(--surface2); }
+.nav-tab.active { color: var(--text); background: var(--surface2); font-weight: 500; }
+
+/* MAIN */
+main { flex: 1; padding: 1.75rem 2rem; max-width: 1140px; margin: 0 auto; width: 100%; }
+.page { display: none; animation: fadeIn .2s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* LOCK BANNER */
+.lock-banner {
+  background: rgba(232,98,42,.08); border: 1px solid rgba(232,98,42,.25);
+  border-radius: var(--r); padding: 1rem 1.25rem; margin-bottom: 1.5rem;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 13px; color: var(--accent2);
+}
+.lock-banner a { color: var(--accent2); text-decoration: underline; }
+.lock-banner-icon { font-size: 20px; flex-shrink: 0; }
+
+/* CERT SUMMARY STRIP */
+.cert-strip {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.5rem;
+}
+.cert-chip {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 14px; border-radius: 999px; font-size: 12px;
+  border: 1px solid var(--border2); font-family: var(--font);
+  transition: all .15s;
+}
+.cert-chip.approved { border-color: var(--p3); background: var(--p3bg); color: var(--p3); }
+.cert-chip.pending  { border-color: rgba(245,158,11,.4); background: rgba(245,158,11,.08); color: #f59e0b; }
+.cert-chip.locked   { border-color: var(--border); background: transparent; color: var(--text3); }
+.cert-chip-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+/* MAP TAB */
+.map-layout { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start; }
+.map-section-title { font-size: 12px; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: .1em; margin-bottom: .75rem; }
+.room-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem; overflow: hidden; }
+.room-canvas { position: relative; background: var(--floor); border: 2px solid var(--border2); border-radius: 6px; margin: 0 auto; width: 100%; aspect-ratio: 4/3; }
+.room-feature { position: absolute; border-radius: 4px; display: flex; align-items: center; justify-content: center; text-align: center; user-select: none; }
+.feat-label { font-size: 9px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; line-height: 1.3; }
+.feat-workbench { background: var(--workbench); border: 1px solid var(--workbench-border); }
+.feat-workbench .feat-label { color: #4a7a4a; }
+.feat-elec { background: var(--elec); border: 1px solid var(--elec-border); }
+.feat-elec .feat-label { color: #5a5a9a; }
+.wall-label { position: absolute; font-size: 9px; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: .08em; }
+
+/* PRINTER NODES */
+.printer-node {
+  position: absolute; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-radius: 8px; border: 2px solid;
+  transition: transform .15s, box-shadow .2s, border-color .2s;
+  user-select: none;
+}
+.printer-node.locked-node { opacity: .4; cursor: not-allowed; filter: grayscale(.6); }
+.printer-node:not(.locked-node):hover { transform: scale(1.05); }
+.printer-node.selected { transform: scale(1.06); }
+.pnode-p1 { background: var(--p1bg); border-color: var(--p1border); }
+.pnode-p2 { background: var(--p2bg); border-color: var(--p2border); }
+.pnode-p3 { background: var(--p3bg); border-color: var(--p3border); }
+.pnode-p1.selected { border-color: var(--p1); box-shadow: 0 0 0 3px rgba(74,158,255,.2), 0 0 20px rgba(74,158,255,.15); }
+.pnode-p2.selected { border-color: var(--p2); box-shadow: 0 0 0 3px rgba(168,85,247,.2), 0 0 20px rgba(168,85,247,.15); }
+.pnode-p3.selected { border-color: var(--p3); box-shadow: 0 0 0 3px rgba(52,211,153,.2), 0 0 20px rgba(52,211,153,.15); }
+.pnode-icon { font-size: 20px; line-height: 1; }
+.pnode-name { font-size: 9px; font-family: var(--mono); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; margin-top: 3px; }
+.pnode-status { font-size: 8px; font-family: var(--mono); margin-top: 2px; }
+.pnode-p1 .pnode-name { color: var(--p1); } .pnode-p2 .pnode-name { color: var(--p2); } .pnode-p3 .pnode-name { color: var(--p3); }
+.lock-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; border-radius: 6px; }
+.status-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin-right: 3px; vertical-align: middle; }
+.dot-free { background: var(--p3); } .dot-busy { background: var(--accent); }
+.map-legend { display: flex; gap: 16px; margin-top: 1rem; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2); font-family: var(--mono); }
+.legend-swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid; }
+
+/* BOOKING PANEL */
+.booking-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem; position: sticky; top: 72px; }
+.panel-hint { text-align: center; padding: 2rem 1rem; color: var(--text3); font-size: 13px; font-family: var(--mono); }
+.panel-hint .hint-icon { font-size: 28px; margin-bottom: .5rem; }
+.selected-printer-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
+.sel-color-bar { width: 4px; height: 36px; border-radius: 2px; flex-shrink: 0; }
+.sel-name { font-size: 15px; font-weight: 600; }
+.sel-sub { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+.today-slots { margin-bottom: 1.25rem; }
+.slots-title { font-size: 11px; color: var(--text3); font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .5rem; }
+.slot-pill { display: flex; align-items: center; gap: 8px; background: var(--surface2); border-radius: var(--r-sm); padding: 7px 10px; margin-bottom: 6px; font-size: 12px; }
+.slot-pill-time { font-family: var(--mono); color: var(--text2); font-size: 11px; flex-shrink: 0; }
+.slot-pill-team { font-weight: 500; }
+.slot-pill-desc { color: var(--text2); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.no-slots { font-size: 12px; color: var(--text3); font-family: var(--mono); }
+.panel-divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+.field { margin-bottom: .85rem; }
+label { display: block; font-size: 11px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 4px; }
+input[type=text], input[type=date], input[type=time], textarea {
+  width: 100%; background: var(--bg); border: 1px solid var(--border2);
+  border-radius: var(--r-sm); color: var(--text); font-family: var(--font);
+  font-size: 13px; padding: 8px 10px; outline: none; transition: border-color .15s;
+}
+input:focus, textarea:focus { border-color: var(--accent); }
+textarea { height: 64px; resize: vertical; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btn { width: 100%; padding: 10px; border-radius: var(--r-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); border: none; transition: opacity .15s, transform .1s; }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { opacity: .88; }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.msg { padding: 9px 12px; border-radius: var(--r-sm); font-size: 12px; margin-bottom: .75rem; display: none; font-family: var(--mono); }
+.msg-ok { background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.25); color: var(--p3); }
+.msg-err { background: rgba(232,98,42,.1); border: 1px solid rgba(232,98,42,.25); color: var(--accent2); }
+.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; margin-right: 6px; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* CALENDAR */
+.printer-chips { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.printer-chip {
+  display: flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 999px;
+  border: 1px solid var(--border2); background: var(--surface);
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  transition: all .15s; font-family: var(--font); color: var(--text2);
+}
+.printer-chip:hover { color: var(--text); }
+.printer-chip.locked-chip { opacity: .4; cursor: not-allowed; }
+.printer-chip.active-p1 { border-color: var(--p1); background: var(--p1bg); color: var(--p1); }
+.printer-chip.active-p2 { border-color: var(--p2); background: var(--p2bg); color: var(--p2); }
+.printer-chip.active-p3 { border-color: var(--p3); background: var(--p3bg); color: var(--p3); }
+.chip-dot { width: 7px; height: 7px; border-radius: 50%; }
+.dot-p1c { background: var(--p1); } .dot-p2c { background: var(--p2); } .dot-p3c { background: var(--p3); }
+.cal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
+.cal-nav-btn { width: 30px; height: 30px; border-radius: var(--r-sm); border: 1px solid var(--border2); background: var(--surface); color: var(--text); cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+.cal-nav-btn:hover { background: var(--surface2); }
+.cal-week-label { font-size: 14px; font-weight: 500; }
+.cal-today-btn { margin-left: auto; padding: 5px 12px; border-radius: var(--r-sm); border: 1px solid var(--border2); background: none; color: var(--text2); font-size: 12px; cursor: pointer; font-family: var(--font); transition: all .15s; }
+.cal-today-btn:hover { background: var(--surface2); color: var(--text); }
+.cal-grid { border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; background: var(--surface); }
+.cal-days-header { display: grid; grid-template-columns: 54px repeat(7,1fr); border-bottom: 1px solid var(--border); }
+.cal-day-head { padding: 10px 6px; text-align: center; }
+.dow { font-size: 10px; color: var(--text3); font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+.dom { font-size: 17px; font-weight: 300; margin-top: 2px; }
+.cal-day-head.today .dom { color: var(--accent2); font-weight: 600; }
+.cal-body { display: grid; grid-template-columns: 54px repeat(7,1fr); }
+.cal-time-col { border-right: 1px solid var(--border); }
+.cal-time-label { height: 48px; display: flex; align-items: flex-start; justify-content: flex-end; padding: 4px 8px 0 0; font-size: 9px; font-family: var(--mono); color: var(--text3); }
+.cal-day-col { position: relative; border-right: 1px solid var(--border); }
+.cal-day-col:last-child { border-right: none; }
+.cal-hour-line { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); }
+.cal-event { position: absolute; left: 2px; right: 2px; border-radius: 4px; padding: 3px 5px; font-size: 10px; line-height: 1.3; overflow: hidden; z-index: 2; cursor: default; transition: opacity .15s; }
+.cal-event:hover { opacity: .8; }
+.ev-p1 { background: var(--p1bg); border-left: 3px solid var(--p1); color: var(--p1); }
+.ev-p2 { background: var(--p2bg); border-left: 3px solid var(--p2); color: var(--p2); }
+.ev-p3 { background: var(--p3bg); border-left: 3px solid var(--p3); color: var(--p3); }
+
+/* ALL LIST */
+.all-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+.filter-btn { padding: 5px 12px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border2); background: none; color: var(--text2); cursor: pointer; font-family: var(--font); transition: all .15s; }
+.filter-btn:hover { background: var(--surface2); color: var(--text); }
+.filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(232,98,42,.08); }
+.all-count { margin-left: auto; font-size: 11px; font-family: var(--mono); color: var(--text3); }
+.all-list { display: flex; flex-direction: column; gap: 8px; }
+.res-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; display: flex; align-items: flex-start; gap: 14px; transition: border-color .15s; }
+.res-card:hover { border-color: var(--border2); }
+.res-bar { width: 3px; border-radius: 2px; align-self: stretch; min-height: 36px; flex-shrink: 0; }
+.res-bar.b-p1 { background: var(--p1); } .res-bar.b-p2 { background: var(--p2); } .res-bar.b-p3 { background: var(--p3); }
+.res-main { flex: 1; min-width: 0; }
+.res-name { font-weight: 500; font-size: 13px; }
+.res-meta { font-size: 11px; color: var(--text2); font-family: var(--mono); margin-top: 2px; }
+.res-desc { font-size: 12px; color: var(--text2); margin-top: 4px; }
+.res-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+.res-tag { font-size: 10px; padding: 2px 8px; border-radius: 999px; font-family: var(--mono); }
+.tag-p1 { background: var(--p1bg); color: var(--p1); border: 1px solid var(--p1border); }
+.tag-p2 { background: var(--p2bg); color: var(--p2); border: 1px solid var(--p2border); }
+.tag-p3 { background: var(--p3bg); color: var(--p3); border: 1px solid var(--p3border); }
+.del-btn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 15px; padding: 2px 6px; border-radius: 4px; transition: all .15s; }
+.del-btn:hover { color: var(--accent); background: rgba(232,98,42,.1); }
+.empty { text-align: center; color: var(--text3); font-size: 13px; padding: 3rem 0; font-family: var(--mono); }
+.loading-state { text-align: center; color: var(--text3); font-size: 12px; font-family: var(--mono); padding: 2rem 0; }
+
+/* LOGIN WALL */
+.full-login-wall { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; }
+.lw-icon { font-size: 48px; margin-bottom: 1rem; }
+.lw-title { font-family: var(--display); font-size: 36px; letter-spacing: .03em; margin-bottom: .5rem; }
+.lw-sub { font-size: 14px; color: var(--text2); margin-bottom: 1.5rem; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 16px; padding: 2rem; width: 100%; max-width: 400px; transform: translateY(12px); transition: transform .2s; }
+.modal-overlay.open .modal { transform: none; }
+.modal-title { font-size: 18px; font-weight: 600; margin-bottom: .25rem; }
+.modal-sub { font-size: 13px; color: var(--text2); margin-bottom: 1.5rem; }
+.field-modal { margin-bottom: 1rem; }
+.field-modal label { display: block; font-size: 11px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 5px; }
+.field-modal input { width: 100%; background: var(--bg); border: 1px solid var(--border2); border-radius: 7px; color: var(--text); font-family: var(--font); font-size: 14px; padding: 10px 12px; outline: none; transition: border-color .15s; }
+.field-modal input:focus { border-color: var(--accent); }
+.btn-modal { width: 100%; padding: 11px; border-radius: 7px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--font); background: var(--accent); color: #fff; border: none; transition: opacity .15s; margin-top: .25rem; }
+.btn-modal:hover { opacity: .88; }
+.modal-note { font-size: 11px; color: var(--text3); font-family: var(--mono); text-align: center; margin-top: .75rem; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo-wrap" href="index.html">
+    <div class="nav-logo-box">RL</div>
+    <span class="nav-logo-text">Rocketry Lab</span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="training.html">Training</a>
+    <a class="nav-link active" href="reserve.html">Reserve Equipment</a>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('map')">Lab Map</button>
+      <button class="nav-tab" onclick="switchTab('calendar')">Calendar</button>
+      <button class="nav-tab" onclick="switchTab('all')">All Reservations</button>
+    </div>
+    <div class="nav-user" id="nav-user" style="display:none">
+      <div class="nav-user-dot"></div>
+      <span id="nav-user-name"></span>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <!-- LOCK / CERT SUMMARY (injected by JS) -->
+  <div id="access-header"></div>
+
+  <!-- MAP TAB -->
+  <div class="page active" id="page-map">
+    <div class="map-layout">
+      <div>
+        <div class="map-section-title">Lab Floor Plan — click a printer to reserve</div>
+        <div class="room-wrap">
+          <div class="room-canvas" id="room-canvas">
+            <span class="wall-label" style="top:6px;left:50%;transform:translateX(-50%)">North Wall</span>
+            <span class="wall-label" style="bottom:6px;left:50%;transform:translateX(-50%)">South Wall</span>
+            <span class="wall-label" style="left:6px;top:50%;transform:translateY(-50%) rotate(-90deg)">West Wall</span>
+            <span class="wall-label" style="right:6px;top:50%;transform:translateY(-50%) rotate(90deg)">East Wall</span>
+            <div class="room-feature feat-workbench" style="left:28%;top:32%;width:44%;height:30%;">
+              <div class="feat-label">Main Workbench<br>96 × 72 in.</div>
+            </div>
+            <div class="room-feature feat-elec" style="right:6%;top:54%;width:16%;height:20%;">
+              <div class="feat-label">Electronics<br>Bench</div>
+            </div>
+            <!-- Printer 1 -->
+            <div class="printer-node pnode-p1" id="node-p1" style="left:8%;top:8%;width:14%;aspect-ratio:1;" title="Printer 1 — Bambu P1S">
+              <div class="pnode-icon">🖨️</div>
+              <div class="pnode-name">Printer 1</div>
+              <div class="pnode-status" id="status-p1"><span class="status-dot dot-free"></span>free</div>
+            </div>
+            <!-- Printer 2 -->
+            <div class="printer-node pnode-p2" id="node-p2" style="left:26%;top:8%;width:14%;aspect-ratio:1;" title="Printer 2 — Bambu P1S">
+              <div class="pnode-icon">🖨️</div>
+              <div class="pnode-name">Printer 2</div>
+              <div class="pnode-status" id="status-p2"><span class="status-dot dot-free"></span>free</div>
+            </div>
+            <!-- Printer 3 -->
+            <div class="printer-node pnode-p3" id="node-p3" style="right:6%;top:22%;width:14%;aspect-ratio:1;" title="Printer 3 — Bambu X1E">
+              <div class="pnode-icon">🖨️</div>
+              <div class="pnode-name">Printer 3</div>
+              <div class="pnode-status" id="status-p3"><span class="status-dot dot-free"></span>free</div>
+            </div>
+          </div>
+          <div class="map-legend">
+            <div class="legend-item"><div class="legend-swatch" style="background:var(--p1bg);border-color:var(--p1border)"></div>Printer 1 — P1S</div>
+            <div class="legend-item"><div class="legend-swatch" style="background:var(--p2bg);border-color:var(--p2border)"></div>Printer 2 — P1S</div>
+            <div class="legend-item"><div class="legend-swatch" style="background:var(--p3bg);border-color:var(--p3border)"></div>Printer 3 — X1E</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOOKING PANEL -->
+      <div class="booking-panel" id="booking-panel">
+        <div class="panel-hint" id="panel-hint">
+          <div class="hint-icon">👆</div>
+          <div>Select a printer<br>on the map to book</div>
+        </div>
+        <div id="panel-form" style="display:none">
+          <div class="selected-printer-header">
+            <div class="sel-color-bar" id="sel-color-bar"></div>
+            <div>
+              <div class="sel-name" id="sel-name"></div>
+              <div class="sel-sub" id="sel-sub"></div>
+            </div>
+          </div>
+          <div class="today-slots">
+            <div class="slots-title">Today's Bookings</div>
+            <div id="today-slots-list"><div class="no-slots">No bookings today</div></div>
+          </div>
+          <hr class="panel-divider">
+          <div class="msg msg-err" id="map-msg-err"></div>
+          <div class="msg msg-ok" id="map-msg-ok">✓ Reservation saved!</div>
+          <div class="field">
+            <label>Your Name</label>
+            <input type="text" id="m-name" placeholder="Full name" readonly>
+          </div>
+          <div class="field">
+            <label>Team / Project</label>
+            <input type="text" id="m-team" placeholder="e.g. Propulsion Team">
+          </div>
+          <div class="field">
+            <label>Description</label>
+            <textarea id="m-desc" placeholder="What are you printing?"></textarea>
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="m-date">
+          </div>
+          <div class="row2">
+            <div class="field"><label>Start</label><input type="time" id="m-start" min="07:00" max="22:00"></div>
+            <div class="field"><label>End</label><input type="time" id="m-end" min="07:00" max="22:00"></div>
+          </div>
+          <button class="btn btn-primary" id="map-submit-btn" onclick="submitFromMap()">Confirm Reservation</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALENDAR TAB -->
+  <div class="page" id="page-calendar">
+    <div class="printer-chips">
+      <div class="printer-chip active-p1" id="chip-p1" onclick="togglePrinter(1)"><div class="chip-dot dot-p1c"></div>Printer 1 — P1S</div>
+      <div class="printer-chip active-p2" id="chip-p2" onclick="togglePrinter(2)"><div class="chip-dot dot-p2c"></div>Printer 2 — P1S</div>
+      <div class="printer-chip active-p3" id="chip-p3" onclick="togglePrinter(3)"><div class="chip-dot dot-p3c"></div>Printer 3 — X1E</div>
+    </div>
+    <div class="cal-header">
+      <button class="cal-nav-btn" onclick="changeWeek(-1)">‹</button>
+      <button class="cal-nav-btn" onclick="changeWeek(1)">›</button>
+      <span class="cal-week-label" id="cal-week-label"></span>
+      <button class="cal-today-btn" onclick="goToday()">Today</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <!-- ALL LIST TAB -->
+  <div class="page" id="page-all">
+    <div class="all-toolbar">
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('Printer 1',this)">Printer 1</button>
+      <button class="filter-btn" onclick="setFilter('Printer 2',this)">Printer 2</button>
+      <button class="filter-btn" onclick="setFilter('Printer 3',this)">Printer 3</button>
+      <span class="all-count" id="all-count"></span>
+    </div>
+    <div class="all-list" id="all-list"><div class="loading-state">Loading…</div></div>
+  </div>
+
+</main>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="login-modal">
+  <div class="modal">
+    <div class="modal-title">Welcome to the Lab</div>
+    <div class="modal-sub">Enter your details to access equipment reservations.</div>
+    <div class="field-modal">
+      <label>Full Name</label>
+      <input type="text" id="login-name" placeholder="Your full name">
+    </div>
+    <div class="field-modal">
+      <label>Email Address</label>
+      <input type="email" id="login-email" placeholder="you@illinois.edu">
+    </div>
+    <button class="btn-modal" onclick="doLogin()">Continue →</button>
+    <div class="modal-note">Your info is used to track training approvals only.</div>
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────────────────────
+// STORAGE KEYS
+// ──────────────────────────────────────────────
+const LS_USER     = 'rl_user_v1';
+const LS_RES      = 'rocketlab_reservations_v2';
+const LS_TRAINING = 'rl_training_v1';
+
+// ──────────────────────────────────────────────
+// USER & TRAINING
+// ──────────────────────────────────────────────
+function getUser() { try { return JSON.parse(localStorage.getItem(LS_USER)); } catch { return null; } }
+function setUser(u) { localStorage.setItem(LS_USER, JSON.stringify(u)); }
+
+function getTraining() { try { return JSON.parse(localStorage.getItem(LS_TRAINING)) || {}; } catch { return {}; } }
+function getUserTraining(u) {
+  const all = getTraining();
+  const key = u.email.toLowerCase().trim();
+  return all[key] || { modules: {}, categoryStatus: {} };
+}
+
+function isCategoryApproved(catId, u) {
+  if (!u) return false;
+  const td = getUserTraining(u);
+  return (td.categoryStatus || {})[catId] === 'approved';
+}
+
+// Printer 1 & 2 require printer-p1s; Printer 3 requires printer-x1e
+function isPrinterUnlocked(printerNum, u) {
+  if (!u) return false;
+  if (printerNum === 1 || printerNum === 2) {
+    // Must have general lab AND p1s approved
+    return isCategoryApproved('lab-general', u) && isCategoryApproved('printer-p1s', u);
+  }
+  if (printerNum === 3) {
+    return isCategoryApproved('lab-general', u) && isCategoryApproved('printer-x1e', u);
+  }
+  return false;
+}
+
+// ──────────────────────────────────────────────
+// RESERVATIONS
+// ──────────────────────────────────────────────
+let reservations = [];
+
+function loadReservations() {
+  try { reservations = JSON.parse(localStorage.getItem(LS_RES)) || []; } catch { reservations = []; }
+}
+function persistReservations() { localStorage.setItem(LS_RES, JSON.stringify(reservations)); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+// ──────────────────────────────────────────────
+// UTILITIES
+// ──────────────────────────────────────────────
+const PRINTERS = ['Printer 1', 'Printer 2', 'Printer 3'];
+const P_COLORS = ['var(--p1)', 'var(--p2)', 'var(--p3)'];
+const P_CLASS  = ['p1', 'p2', 'p3'];
+const P_MODELS = ['Bambu P1S', 'Bambu P1S', 'Bambu X1E'];
+
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function fmtDateISO(d) { return d.toISOString().split('T')[0]; }
+function fmtDisp(d) { return d.toLocaleDateString('en-US', {month:'short', day:'numeric'}); }
+function fmtTime(t) { const [h,m]=t.split(':'); const hh=+h; return `${hh===0?12:hh>12?hh-12:hh}:${m}${hh<12?'am':'pm'}`; }
+function timeToMin(t) { const [h,m]=t.split(':'); return +h*60+ +m; }
+function getMonday(d) { const c=new Date(d); c.setDate(c.getDate()-((c.getDay()+6)%7)); c.setHours(0,0,0,0); return c; }
+function addDays(d, n) { const c=new Date(d); c.setDate(c.getDate()+n); return c; }
+function printerIdx(name) { return PRINTERS.indexOf(name); }
+
+let selectedPrinter = 0;
+let weekStart = getMonday(new Date());
+let activePrinters = new Set([1,2,3]);
+let allFilter = 'all';
+let currentUser = null;
+
+// ──────────────────────────────────────────────
+// TABS
+// ──────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'calendar') renderCalendar();
+  if (name === 'all') renderAll();
+}
+
+// ──────────────────────────────────────────────
+// ACCESS HEADER
+// ──────────────────────────────────────────────
+function renderAccessHeader(u) {
+  const header = document.getElementById('access-header');
+  if (!u) { header.innerHTML = ''; return; }
+
+  const cats = [
+    { id: 'lab-general', label: 'Lab Safety',  color: 'var(--accent)' },
+    { id: 'printer-p1s', label: 'P1S Training', color: 'var(--p2)' },
+    { id: 'printer-x1e', label: 'X1E Training', color: 'var(--p3)' },
+    { id: 'electronics', label: 'Electronics',  color: 'var(--p1)' },
+  ];
+
+  const td = getUserTraining(u);
+
+  const chips = cats.map(c => {
+    const status = (td.categoryStatus || {})[c.id] || 'none';
+    let cls = 'locked', icon = '🔒';
+    if (status === 'approved') { cls = 'approved'; icon = '✓'; }
+    else if (status === 'pending') { cls = 'pending'; icon = '⏳'; }
+    return `<div class="cert-chip ${cls}">${icon} ${c.label}</div>`;
+  }).join('');
+
+  const allLocked = !isCategoryApproved('lab-general', u) && !isCategoryApproved('printer-p1s', u) && !isCategoryApproved('printer-x1e', u);
+
+  header.innerHTML = `
+    <div class="cert-strip">${chips}</div>
+    ${allLocked ? `<div class="lock-banner"><div class="lock-banner-icon">🔒</div>Complete and get <a href="training.html">training approved</a> to unlock printer reservations. Printers are shown on the map but cannot be booked until certified.</div>` : ''}
+  `;
+}
+
+// ──────────────────────────────────────────────
+// MAP
+// ──────────────────────────────────────────────
+function setupMapNodes(u) {
+  for (let i = 1; i <= 3; i++) {
+    const node = document.getElementById('node-p' + i);
+    const unlocked = isPrinterUnlocked(i, u);
+    if (!unlocked) {
+      node.classList.add('locked-node');
+      node.onclick = () => showLockMessage(i);
+    } else {
+      node.classList.remove('locked-node');
+      node.onclick = () => selectPrinter(i);
+    }
+  }
+}
+
+function showLockMessage(printerNum) {
+  const needed = printerNum <= 2 ? 'General Lab Safety + Bambu P1S Training' : 'General Lab Safety + Bambu X1E Training';
+  alert(`🔒 Printer ${printerNum} is locked.\n\nYou need approved certifications:\n• ${needed}\n\nComplete your training at training.html`);
+}
+
+function updatePrinterStatuses() {
+  const now = new Date(), ds = todayStr();
+  const cur = now.getHours()*60 + now.getMinutes();
+  PRINTERS.forEach((p, i) => {
+    const busy = reservations.some(r => r.date===ds && r.printers.includes(p) &&
+      timeToMin(r.start) <= cur && cur < timeToMin(r.end));
+    const el = document.getElementById('status-p' + (i+1));
+    el.innerHTML = `<span class="status-dot ${busy?'dot-busy':'dot-free'}"></span>${busy?'busy':'free'}`;
+  });
+}
+
+function selectPrinter(n) {
+  const u = getUser();
+  if (!isPrinterUnlocked(n, u)) { showLockMessage(n); return; }
+
+  selectedPrinter = n;
+  document.querySelectorAll('.printer-node').forEach(nd => nd.classList.remove('selected'));
+  document.getElementById('node-p'+n).classList.add('selected');
+  document.getElementById('panel-hint').style.display = 'none';
+  document.getElementById('panel-form').style.display = 'block';
+
+  const bar = document.getElementById('sel-color-bar');
+  bar.style.background = P_COLORS[n-1];
+  document.getElementById('sel-name').textContent = 'Printer ' + n;
+  document.getElementById('sel-name').style.color = P_COLORS[n-1];
+  document.getElementById('sel-sub').textContent = P_MODELS[n-1];
+  document.getElementById('m-date').value = todayStr();
+
+  // Pre-fill name
+  if (u) document.getElementById('m-name').value = u.name;
+
+  document.getElementById('map-msg-ok').style.display = 'none';
+  document.getElementById('map-msg-err').style.display = 'none';
+  updateTodaySlots(n);
+}
+
+function updateTodaySlots(n) {
+  const pname = PRINTERS[n-1];
+  const slots = reservations.filter(r => r.date===todayStr() && r.printers.includes(pname))
+    .sort((a,b) => a.start.localeCompare(b.start));
+  const list = document.getElementById('today-slots-list');
+  if (slots.length === 0) {
+    list.innerHTML = '<div class="no-slots">No bookings today</div>';
+  } else {
+    list.innerHTML = slots.map(s => `
+      <div class="slot-pill">
+        <span class="slot-pill-time">${fmtTime(s.start)}–${fmtTime(s.end)}</span>
+        <span class="slot-pill-team">${s.team}</span>
+        <span class="slot-pill-desc">${s.desc}</span>
+      </div>`).join('');
+  }
+}
+
+function submitFromMap() {
+  const name  = document.getElementById('m-name').value.trim();
+  const team  = document.getElementById('m-team').value.trim();
+  const desc  = document.getElementById('m-desc').value.trim();
+  const date  = document.getElementById('m-date').value;
+  const start = document.getElementById('m-start').value;
+  const end   = document.getElementById('m-end').value;
+  const errEl = document.getElementById('map-msg-err');
+  const okEl  = document.getElementById('map-msg-ok');
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+
+  if (!name||!team||!desc||!date||!start||!end) {
+    errEl.textContent = 'Please fill in all required fields.'; errEl.style.display = 'block'; return;
+  }
+  if (start >= end) { errEl.textContent = 'End time must be after start time.'; errEl.style.display = 'block'; return; }
+
+  const u = getUser();
+  if (!isPrinterUnlocked(selectedPrinter, u)) {
+    errEl.textContent = 'You are not certified for this printer.'; errEl.style.display = 'block'; return;
+  }
+
+  const btn = document.getElementById('map-submit-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Saving…';
+
+  const res = { id: uid(), name, team, desc, printers: [PRINTERS[selectedPrinter-1]], date, start, end, userId: u?.email };
+  reservations.push(res);
+  persistReservations();
+
+  okEl.style.display = 'block';
+  btn.disabled = false; btn.textContent = 'Confirm Reservation';
+  document.getElementById('m-team').value = '';
+  document.getElementById('m-desc').value = '';
+  document.getElementById('m-start').value = '';
+  document.getElementById('m-end').value = '';
+  document.getElementById('m-date').value = todayStr();
+  updatePrinterStatuses();
+  updateTodaySlots(selectedPrinter);
+  setTimeout(() => okEl.style.display = 'none', 4000);
+}
+
+// ──────────────────────────────────────────────
+// CALENDAR
+// ──────────────────────────────────────────────
+const CAL_START = 7, CAL_END = 22, CELL_H = 48;
+
+function changeWeek(d) { weekStart = addDays(weekStart, d*7); renderCalendar(); }
+function goToday() { weekStart = getMonday(new Date()); renderCalendar(); }
+function togglePrinter(n) {
+  const chip = document.getElementById('chip-p'+n);
+  const cls = 'active-p'+n;
+  if (activePrinters.has(n)) {
+    if (activePrinters.size === 1) return;
+    activePrinters.delete(n); chip.classList.remove(cls);
+  } else {
+    activePrinters.add(n); chip.classList.add(cls);
+  }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const days = Array.from({length:7}, (_,i) => addDays(weekStart, i));
+  const todStr = todayStr();
+  const wEnd = addDays(weekStart, 6);
+  document.getElementById('cal-week-label').textContent =
+    `${fmtDisp(weekStart)} – ${fmtDisp(wEnd)}, ${wEnd.getFullYear()}`;
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  const hdr = document.createElement('div');
+  hdr.className = 'cal-days-header';
+  hdr.innerHTML = '<div></div>' + days.map(d => {
+    const ds = fmtDateISO(d), isT = ds === todStr;
+    const dow = d.toLocaleDateString('en-US', {weekday:'short'});
+    return `<div class="cal-day-head${isT?' today':''}"><div class="dow">${dow}</div><div class="dom">${d.getDate()}</div></div>`;
+  }).join('');
+  grid.appendChild(hdr);
+
+  const body = document.createElement('div');
+  body.className = 'cal-body';
+  const hours = CAL_END - CAL_START;
+  const bodyH = hours * CELL_H;
+  const timeCol = document.createElement('div');
+  timeCol.className = 'cal-time-col';
+  timeCol.style.cssText = `position:relative;height:${bodyH}px;`;
+  for (let h = CAL_START; h < CAL_END; h++) {
+    const lbl = document.createElement('div');
+    lbl.className = 'cal-time-label';
+    lbl.textContent = h===12?'12pm':h<12?`${h}am`:`${h-12}pm`;
+    timeCol.appendChild(lbl);
+  }
+  body.appendChild(timeCol);
+
+  days.forEach(day => {
+    const ds = fmtDateISO(day);
+    const col = document.createElement('div');
+    col.className = 'cal-day-col';
+    col.style.cssText = `position:relative;height:${bodyH}px;`;
+    for (let h = 0; h < hours; h++) {
+      const line = document.createElement('div');
+      line.className = 'cal-hour-line';
+      line.style.top = `${h*CELL_H}px`;
+      col.appendChild(line);
+    }
+    const dayRes = reservations.filter(r => r.date===ds && r.printers.some(p => activePrinters.has(printerIdx(p)+1)));
+    dayRes.forEach(r => {
+      const filtP = r.printers.filter(p => activePrinters.has(printerIdx(p)+1));
+      const sm = timeToMin(r.start), em = timeToMin(r.end);
+      const top = (sm - CAL_START*60)/60*CELL_H;
+      const ht = Math.max((em-sm)/60*CELL_H-2, 14);
+      filtP.forEach((p, pi) => {
+        const idx = printerIdx(p);
+        const n = filtP.length;
+        const ev = document.createElement('div');
+        ev.className = `cal-event ev-${P_CLASS[idx]}`;
+        ev.style.cssText = `top:${top}px;height:${ht}px;left:calc(${pi*100/n}% + 2px);right:calc(${(n-pi-1)*100/n}% + 2px);`;
+        ev.title = `${r.name} (${r.team})\n${p}\n${fmtTime(r.start)}–${fmtTime(r.end)}\n${r.desc}`;
+        ev.innerHTML = `<div style="font-weight:500">${r.team}</div>${ht>28?`<div style="opacity:.7">${fmtTime(r.start)}–${fmtTime(r.end)}</div>`:''}`;
+        col.appendChild(ev);
+      });
+    });
+    body.appendChild(col);
+  });
+  grid.appendChild(body);
+}
+
+// ──────────────────────────────────────────────
+// ALL LIST
+// ──────────────────────────────────────────────
+function setFilter(f, btn) {
+  allFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+function renderAll() {
+  const f = allFilter==='all' ? reservations : reservations.filter(r => r.printers.includes(allFilter));
+  const sorted = [...f].sort((a,b) => a.date===b.date ? a.start.localeCompare(b.start) : a.date.localeCompare(b.date));
+  document.getElementById('all-count').textContent = `${sorted.length} reservation${sorted.length!==1?'s':''}`;
+  const list = document.getElementById('all-list');
+  if (sorted.length === 0) { list.innerHTML = '<div class="empty">No reservations found.</div>'; return; }
+  list.innerHTML = '';
+  sorted.forEach(r => {
+    const d = new Date(r.date+'T12:00:00');
+    const ds = d.toLocaleDateString('en-US', {weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    const bc = P_CLASS[printerIdx(r.printers[0])] || 'p1';
+    const card = document.createElement('div');
+    card.className = 'res-card';
+    card.innerHTML = `
+      <div class="res-bar b-${bc}"></div>
+      <div class="res-main">
+        <div class="res-name">${r.name} <span style="font-weight:400;color:var(--text2)">· ${r.team}</span></div>
+        <div class="res-meta">${ds} · ${fmtTime(r.start)} – ${fmtTime(r.end)}</div>
+        <div class="res-desc">${r.desc}</div>
+        <div class="res-tags">${r.printers.map(p=>{const i=printerIdx(p);return`<span class="res-tag tag-${P_CLASS[i]}">${p} (${P_MODELS[i]})</span>`;}).join('')}</div>
+      </div>
+      <button class="del-btn" title="Delete" onclick="doDelete('${r.id}')">✕</button>`;
+    list.appendChild(card);
+  });
+}
+
+function doDelete(id) {
+  if (!confirm('Delete this reservation?')) return;
+  reservations = reservations.filter(r => r.id !== id);
+  persistReservations();
+  renderAll();
+  updatePrinterStatuses();
+  if (selectedPrinter) updateTodaySlots(selectedPrinter);
+}
+
+// ──────────────────────────────────────────────
+// LOGIN
+// ──────────────────────────────────────────────
+function doLogin() {
+  const name  = document.getElementById('login-name').value.trim();
+  const email = document.getElementById('login-email').value.trim();
+  if (!name || !email) return;
+  setUser({ name, email, joined: new Date().toISOString() });
+  document.getElementById('login-modal').classList.remove('open');
+  init();
+}
+
+document.getElementById('login-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+// ──────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────
+function init() {
+  currentUser = getUser();
+  if (!currentUser) {
+    setTimeout(() => {
+      document.getElementById('login-modal').classList.add('open');
+      setTimeout(() => document.getElementById('login-name').focus(), 100);
+    }, 400);
+    return;
+  }
+
+  document.getElementById('nav-user').style.display = 'flex';
+  document.getElementById('nav-user-name').textContent = currentUser.name.split(' ')[0];
+
+  renderAccessHeader(currentUser);
+  setupMapNodes(currentUser);
+  document.getElementById('m-date').value = todayStr();
+  updatePrinterStatuses();
+  renderCalendar();
+}
+
+loadReservations();
+init();
+</script>
+</body>
+</html>
