@@ -520,12 +520,12 @@ textarea { height: 64px; resize: vertical; }
 // ─────────────────────────────────────────
 //  CONFIGURATION — paste your Apps Script URL here after deploying
 // ─────────────────────────────────────────
-const SHEET_API = 'YOUR_APPS_SCRIPT_URL_HERE';
+const SHEET_API = 'https://script.google.com/macros/s/AKfycbx6Uq52w9P183dLoWxaui8OnvOo4wRRt6ukz0IudI9INnefqKQnTw2LttZCXk35D05t/exec';
 
 // Falls back to localStorage when SHEET_API is not yet configured
-const USE_SHEETS = SHEET_API !== 'YOUR_APPS_SCRIPT_URL_HERE';
+const USE_SHEETS = SHEET_API !== 'https://script.google.com/macros/s/AKfycbx6Uq52w9P183dLoWxaui8OnvOo4wRRt6ukz0IudI9INnefqKQnTw2LttZCXk35D05t/exec';
 
-const PRINTERS = ['Printer 1','Printer 2','Printer 3'];
+const PRINTERS = ['Left P2S','Right P2S','X1E'];
 const P_CLASS  = ['p1','p2','p3'];
 const P_COLORS = ['var(--p1)','var(--p2)','var(--p3)'];
 const LS_KEY   = 'rocketlab_reservations_v2';
